@@ -1,0 +1,15 @@
+# Security (Keys)
+.env
+
+# massive folder (System files)
+venv/
+env/
+
+# Junk files
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# Local Database
+db.sqlite3

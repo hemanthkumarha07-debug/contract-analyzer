@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Legal AI</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .gradient-bg { background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%); }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+
+    <div class="glass w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+        
+        <div class="w-full md:w-5/12 p-10 flex flex-col justify-center border-r border-gray-100 bg-white">
+            <div class="mb-8">
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full tracking-wider">POWERED BY GEMINI</span>
+                <h1 class="text-4xl font-extrabold text-slate-900 mt-4 mb-2">Contract Intelligence</h1>
+                <p class="text-slate-500">Upload a PDF or DOCX. Let AI uncover the hidden risks.</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" id="uploadForm" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="relative border-2 border-dashed border-slate-300 rounded-2xl p-10 hover:border-indigo-500 hover:bg-indigo-50 transition-all cursor-pointer group text-center">
+                    <input type="file" name="file" id="fileInput" accept=".pdf,.docx,.txt" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required>
+                    
+                    <div id="defaultState">
+                        <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        </div>
+                        <p class="font-semibold text-slate-700">Click to Upload Document</p>
+                        <p class="text-xs text-slate-400 mt-1">PDF, DOCX, or TXT</p>
+                    </div>
+
+                    <div id="fileSelected" class="hidden">
+                        <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <p id="filenameDisplay" class="font-bold text-slate-800 break-all"></p>
+                        <p class="text-xs text-green-600 mt-1">Ready to analyze</p>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-indigo-600 transition-colors shadow-lg flex items-center justify-center gap-2">
+                    <span id="btnText">Analyze Contract</span>
+                    <svg id="spinner" class="animate-spin h-5 w-5 text-white hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                </button>
+            </form>
+        </div>
+
+        <div class="w-full md:w-7/12 bg-slate-50 p-10 overflow-y-auto max-h-[800px]">
+            {% if result %}
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 animate-[fadeIn_0.5s_ease-out]">
+                    <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
+                        <span class="flex h-3 w-3 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        </span>
+                        <h2 class="text-lg font-bold text-slate-800 uppercase tracking-wide">Analysis Report</h2>
+                    </div>
+                    
+                    <div class="prose prose-slate max-w-none">
+                        {{ result|safe }}
+                    </div>
+                </div>
+            {% else %}
+                <div class="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
+                    <svg class="w-24 h-24 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <p class="text-lg font-medium">Results will appear here</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const defaultState = document.getElementById('defaultState');
+        const fileSelected = document.getElementById('fileSelected');
+        const filenameDisplay = document.getElementById('filenameDisplay');
+        const form = document.getElementById('uploadForm');
+        const btn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const spinner = document.getElementById('spinner');
+
+        fileInput.addEventListener('change', function(e) {
+            if(this.files[0]) {
+                defaultState.classList.add('hidden');
+                fileSelected.classList.remove('hidden');
+                filenameDisplay.textContent = this.files[0].name;
+            }
+        });
+
+        form.addEventListener('submit', function() {
+            btn.disabled = true;
+            btn.classList.add('opacity-75');
+            btnText.textContent = "Analyzing...";
+            spinner.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
